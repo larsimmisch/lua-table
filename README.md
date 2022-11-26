@@ -42,7 +42,7 @@ Supported types of data:
 - number
 - object (also nested)
 - array (also nested)
-- class instance
+- class instance (also nested)
 
 Functions will be ignored and treated like undefined.  
 Unsupported types (e.g. Date) will throw an Error.

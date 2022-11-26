@@ -1,0 +1,6 @@
+{
+	["a"] --[[ comment ]] = 1,
+	["b"] = 2, -- comment  
+	-- comment
+	["c"--[[comment]]] = "str",
+}
