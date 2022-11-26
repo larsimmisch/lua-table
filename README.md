@@ -2,20 +2,30 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [API](#api)
 	- [stringify](#stringify)
+	- [parse](#parse)
+- [API](#api)
+	- [stringify](#stringify-1)
+	- [parse](#parse-1)
 
-Stringify data to a string containing a lua table
+Parse from and stringify to lua-tables.
+
+Typings and ts-doc are included.
 
 ## Installation
 `npm install @kilcekru/lua-table`
 
 ## Usage
 
+### stringify
+
 ```javascript
 import { stringify } from "@kilcekru/lua-table";
 
-const table = stringify({a: 1, b: "str"});
+const options = {
+	pretty: true, // Configure pretty-print
+}
+const table = stringify({a: 1, b: "str"}, options);
 
 console.log(table);
 /*
@@ -26,11 +36,38 @@ console.log(table);
 */
 ```
 
+### parse
+
+```javascript
+import { parse } from "@kilcekru/lua-table";
+
+const options = {
+	emptyTables: "object", // Parse empty tables as object or array
+	booleanKeys: false, // Allow boolean keys in tables
+	mixedKeyTypes: false, // Allow tables with string and numeric keys
+	nonPositiveIntegerKeys: false, // Allow numeric keys that are not positive integers
+	sparseArray: true, // Allow sparse arrays
+}
+const data = parse('{["a"]=1,["b"]="str"}', options);
+
+console.log(JSON.stringify(data, undefined, "\t"));
+/*
+{
+	"a": 1,
+	"b": "str"
+}
+*/
+```
+
 ## API
 
 ### stringify
+
 ```typescript
-stringify(data: unknown): string;
+stringify(data: unknown, options?: StringifyOptions): string;
+interface StringifyOptions {
+	pretty?: boolean | number | string; // Configure pretty-print
+}
 ```
 
 Stringifies data to a lua-table.
@@ -46,3 +83,71 @@ Supported types of data:
 
 Functions will be ignored and treated like undefined.  
 Unsupported types (e.g. Date) will throw an Error.
+
+**Options**
+- `pretty` (type: `string | number | boolean`; default: `true`)
+	
+	Configure pretty-print for result
+
+	- *string*: will be used as indent
+	- *number*: count of spaces used as indent
+	- *true*: indent with tabs
+	- *false*: disables pretty-print
+
+### parse
+
+```typescript
+parse(input: string, options?: ParseOptions): unknown;
+interface ParseOptions {
+	emptyTables?: "object" | "array"; // Parse empty tables as object or array
+	booleanKeys?: boolean; // Allow boolean keys in tables
+	mixedKeyTypes?: boolean; // Allow tables with string and numeric keys
+	nonPositiveIntegerKeys?: boolean; // Allow numeric keys that are not positive integers
+	sparseArray?: boolean; // Allow sparse arrays
+}
+```
+
+Parse stringified lua-table.\
+If the input can't be parsed or violates the rules set with options an error will be thrown.\
+The return type depends on given input.
+
+**Options**
+- `emptyTables` (type: `"object" | "array"`; default: `"object"`)
+	
+	Define how empty tables are parsed.\
+	Empty lua table could be an empty array or an empty object. This can't be determined by the parser.
+
+	- "object": parse empty tables as empty objects
+	- "array": parse empty tables as empty arrays
+
+- `booleanKeys` (type: `boolean`; default: `false`)
+
+	Allow boolean keys in tables.\
+	Javascript object can only be indexed with string, so this can't be converted 1:1.
+
+	- true: convert boolean keys to string
+	- false: throw error if boolean keys are encountered
+
+- `mixedKeyTypes` (type: `boolean`; default: `false`)
+
+	Allow tables with string and numeric keys.\
+	Javascript object can only be indexed with string, so this can't be converted 1:1.
+
+	- true: convert numeric keys to string, if string keys are present
+	- false: throw error, if table with mixed key types is encountered
+
+- `nonPositiveIntegerKeys` (type: `boolean`; default: `false`)
+
+	Allow numeric table keys that are not positive integers.\
+	Numeric keys should be array indices, this is not possible, if numeric keys are floats or <= 0.
+
+	- true: convert tables with non-positive-integers keys to objects, keys are converted to strings
+	- false: throw error, if non-positive-integers keys are encountered
+
+- `sparseArray` (type: `boolean`; default: `true`)
+
+	Allow sparse arrays.\
+	Sparse arrays behave different in lua and javascript.
+
+	- true: Parse sparse arrays as sparse arrays
+	- false: throw error if input contains sparse array
