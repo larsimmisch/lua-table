@@ -1,6 +1,6 @@
 {
 	"name": "@kilcekru/lua-table",
-	"version": "0.1.1",
+	"version": "1.0.0",
 	"description": "Stringify data to lua-tables",
 	"license": "MIT",
 	"author": {
