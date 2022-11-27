@@ -1,5 +1,9 @@
 # lua-table
 
+Parse from and stringify to lua-tables.
+
+Typings and ts-doc are included.
+
 - [Installation](#installation)
 - [Usage](#usage)
 	- [stringify](#stringify)
@@ -9,10 +13,6 @@
 	- [parse](#parse-1)
 - [License](#license)
 - [Changelog](#changelog)
-
-Parse from and stringify to lua-tables.
-
-Typings and ts-doc are included.
 
 ## Installation
 `npm install @kilcekru/lua-table`
