@@ -4,7 +4,7 @@ export interface ParseOptions {
 	/**
 	 * Define how empty tables are parsed
 	 *
-	 * Empty table could be an empty array or an empty object. This can't be determined by the parser.
+	 * Empty lua table could be an empty array or an empty object. This can't be determined by the parser.
 	 * - "object": parse empty tables as empty objects
 	 * - "array": parse empty tables as empty arrays
 	 *
@@ -15,18 +15,18 @@ export interface ParseOptions {
 	 * Allow boolean keys in tables
 	 *
 	 * Javascript object can only be indexed with string, so this can't be converted 1:1
-	 * true: convert boolean keys to string
-	 * false: throw error if boolean keys are encountered
+	 * - true: convert boolean keys to string
+	 * - false: throw error if boolean keys are encountered
 	 *
 	 * @defaultValue false
 	 */
 	booleanKeys?: boolean;
 	/**
-	 * Allo tables with string and numeric keys
+	 * Allow tables with string and numeric keys
 	 *
 	 * Javascript object can only be indexed with string, so this can't be converted 1:1
-	 * true: convert numeric keys to string, if string keys are present
-	 * false: throw error, if table with mixed key types is encountered
+	 * - true: convert numeric keys to string, if string keys are present
+	 * - false: throw error, if table with mixed key types is encountered
 	 *
 	 * @defaultValue false
 	 */
@@ -63,7 +63,7 @@ export interface ParseOptions {
  * @param options.nonPositiveIntegerKeys allow numeric keys that are not positive integers
  * @param options.sparseArray allow sparse arrays (default true)
  *
- * @returns parsed data. type depends on input
+ * @returns parsed data. type depends on given input
  *
  * @throws if input can't be parsed an error is thrown. Error message contains the reason for pasing failure
  */

@@ -32,7 +32,7 @@
 		"clean:all": "rm -rf dist node_modules",
 		"dev": "tsup --config utils/tsup.config.js --watch",
 		"lint": "eslint src",
-		"prepack": "pnpm build && pnpm lint",
+		"prepack": "pnpm build && pnpm lint && pnpm prettier && pnpm test",
 		"prepare": "husky install utils/husky",
 		"prettier": "prettier --write .",
 		"test": "jest",

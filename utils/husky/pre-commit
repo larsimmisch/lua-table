@@ -3,3 +3,5 @@
 
 pnpm validate
 pnpm lint
+pnpm prettier
+pnpm test
