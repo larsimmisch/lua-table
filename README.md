@@ -7,6 +7,8 @@
 - [API](#api)
 	- [stringify](#stringify-1)
 	- [parse](#parse-1)
+- [License](#license)
+- [Changelog](#changelog)
 
 Parse from and stringify to lua-tables.
 
@@ -81,8 +83,11 @@ Supported types of data:
 - array (also nested)
 - class instance (also nested)
 
-Functions will be ignored and treated like undefined.  
+Functions will be ignored and treated like undefined.\
 Unsupported types (e.g. Date) will throw an Error.
+
+Array indices start at 0 in javascript and at 1 in lua.\
+Because of this, array indices will incremented when an array is stringified.
 
 **Options**
 - `pretty` (type: `string | number | boolean`; default: `true`)
@@ -110,6 +115,10 @@ interface ParseOptions {
 Parse stringified lua-table.\
 If the input can't be parsed or violates the rules set with options an error will be thrown.\
 The return type depends on given input.
+
+Array indices start at 1 in lua and at 0 in javascript.\
+Because of this indices are decremented when a table is converted to an array.\
+If numeric indices are converted to an object (e.g. with mixed key types) indices will not be decremented.
 
 **Options**
 - `emptyTables` (type: `"object" | "array"`; default: `"object"`)
@@ -151,3 +160,12 @@ The return type depends on given input.
 
 	- true: Parse sparse arrays as sparse arrays
 	- false: throw error if input contains sparse array
+
+## License
+
+Licensed under [MIT](https://github.com/Kilcekru/lua-table/blob/main/LICENSE).
+
+## Changelog
+
+- v1.0.0
+	- Initial Release
