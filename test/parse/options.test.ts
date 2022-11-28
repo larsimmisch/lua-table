@@ -5,12 +5,14 @@ import { parse } from "../../src/parse";
 describe("parse", () => {
 	describe("options", () => {
 		test("booleanKeys (default)", () => {
-			expect(() => parse("{[true]=1}")).toThrow(new Error("Unexpected token 't' at position 2"));
+			expect(() => parse("{[true]=1}")).toThrow(
+				new Error("Unexpected token 't' at position 2 (line 1:2) near '{[true]=1}'")
+			);
 		});
 
 		test("booleanKeys (false)", () => {
 			expect(() => parse("{[true]=1}", { booleanKeys: false })).toThrow(
-				new Error("Unexpected token 't' at position 2")
+				new Error("Unexpected token 't' at position 2 (line 1:2) near '{[true]=1}'")
 			);
 		});
 

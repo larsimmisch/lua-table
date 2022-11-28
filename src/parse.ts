@@ -114,7 +114,27 @@ class Parser {
 	}
 
 	invalidMessage() {
-		return this.isEnd() ? errMsg.end() : errMsg.invalid(this.currentChar(), this.pos);
+		if (this.isEnd()) {
+			return errMsg.end();
+		}
+		const surround = this.input.slice(Math.max(0, this.pos - 10), this.pos + 10);
+		return errMsg.invalid(this.currentChar(), this.pos, this.getLinePos(), surround);
+	}
+
+	getLinePos() {
+		let line = 1;
+		let col = 0;
+		let i = 0;
+		while (i < this.pos) {
+			if (this.input.charAt(i) === "\n") {
+				line++;
+				col = 1;
+			} else {
+				col++;
+			}
+			i++;
+		}
+		return { line, col };
 	}
 
 	tryValue() {

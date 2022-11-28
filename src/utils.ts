@@ -24,7 +24,8 @@ export const errMsg = {
 	end: () => "Unexpected end of input",
 	error: () => "Internal error. This is due to a bug",
 	fail: () => "Received invalid input",
-	invalid: (char: string, pos: number) => `Unexpected token '${char}' at position ${pos}`,
+	invalid: (char: string, pos: number, { line, col }: { line: number; col: number }, surround: string) =>
+		`Unexpected token '${char}' at position ${pos} (line ${line}:${col}) near '${surround}'`,
 	mixed: () => "Encountered table mith mixed key types and options.mixedKeyTypes is not true",
 	nonPosIntKeys: () =>
 		"Encountered numeric key which is not a positive integer and options.nonPositiveIntegerKeys is not true",
