@@ -2,6 +2,10 @@
 	"name": "@kilcekru/lua-table",
 	"version": "1.0.0",
 	"description": "Stringify data to lua-tables",
+	"keywords": [
+		"lua",
+		"lua-table"
+	],
 	"license": "MIT",
 	"author": {
 		"name": "Kilcekru",
