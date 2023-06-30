@@ -69,6 +69,8 @@ console.log(JSON.stringify(data, undefined, "\t"));
 stringify(data: unknown, options?: StringifyOptions): string;
 interface StringifyOptions {
 	pretty?: boolean | number | string; // Configure pretty-print
+	mixedKeyTypes?: boolean; // Allow tables with string and numeric keys
+	nonPositiveIntegerKeys?: boolean; // Allow numeric table keys that are not positive integers
 }
 ```
 
@@ -92,12 +94,30 @@ Because of this, array indices will incremented when an array is stringified.
 **Options**
 - `pretty` (type: `string | number | boolean`; default: `true`)
 	
-	Configure pretty-print for result
+	Configure pretty-print for result.
 
 	- *string*: will be used as indent
 	- *number*: count of spaces used as indent
 	- *true*: indent with tabs
 	- *false*: disables pretty-print
+
+- `mixedKeyTypes` (type: `boolean`; default: `false`)
+
+	Allow tables with string and numeric keys.\
+	Javascript object can only be indexed with string, so this can't be converted 1:1.
+
+	- true: Convert keys that are parseable as number to number, leave non-numbers as string
+	- false: Leave all keys as string
+
+	Options `nonPositiveIntegerKeys` can be used to define which numbers are allowed as keys
+
+- `nonPositiveIntegerKeys` (type: `boolean`; default: `false`)
+
+	Allow numeric table keys that are not positive integers.\
+	This option only influences the output if option `mixedKeyTypes` is true.
+	
+	- true: Every key parseable as number will be converted to number
+	- false: Only positive integers will be converted to number, other keys will be left as string
 
 ### parse
 
