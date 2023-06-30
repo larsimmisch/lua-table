@@ -18,7 +18,8 @@
 	"homepage": "https://github.com/Kilcekru/lua-table#readme",
 	"bugs": "https://github.com/Kilcekru/lua-table/issues",
 	"engines": {
-		"pnpm": ">=7.15.0"
+		"node": ">=18.12.0",
+		"pnpm": "^8.6.2"
 	},
 	"files": [
 		"dist/**"
