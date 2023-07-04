@@ -1,6 +1,10 @@
 {
-	"extends": "@kilcekru/ts-basics/tsconfig-node-library.json",
 	"compilerOptions": {
+		"target" :"ES2022",
+		"lib": [
+			"ES2022",
+			"ES2022.String"
+		],
 		"removeComments": false
 	},
 	"include": ["."]
