@@ -82,7 +82,7 @@ describe("parse", () => {
 		});
 
 		test("complex (string, table)", () => {
-			expect(parse(`{"lua51",{it = true,describe = true}}`)).toEqual(['lua51', {'it': true, 'describe': true}])
+			expect(parse(`{"lua51",{it = true,describe = true}}`)).toEqual(['lua51', {it: true, describe: true}])
 		});
 
 		test("complex", () => {

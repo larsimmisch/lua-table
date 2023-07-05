@@ -160,6 +160,7 @@ class Parser {
 			return undefined;
 		}
 		this.pos++;
+		let implicitIndex = 1;
 
 		const arrEntries: unknown[] = [];
 		const entries = new Map<string | number, unknown>();
@@ -194,12 +195,12 @@ class Parser {
 				}
 			}
 			this.skipWhiteSpace();
-			let isClosingBrace = this.currentChar() === '}'
-			if (this.currentChar() === "," || isClosingBrace) {
+			let char = this.currentChar();
+			if (char === "," || char === '}') {
 				this.pos++;
 				this.skipWhiteSpace();
-				arrEntries.push(keyOrValue);
-				if (isClosingBrace) {
+				arrEntries[implicitIndex++] = keyOrValue;
+				if (char === '}') {
 					return this.finalizeTable(arrEntries, entries);
 				}
 			}
@@ -211,7 +212,6 @@ class Parser {
 					if (!Number.isInteger(keyOrValue) || (keyOrValue < 0)) {
 						throw new Error(errMsg.nonPosIntKeys())
 					}
-					arrEntries.
 					arrEntries[keyOrValue] = value;
 				}
 				else if (typeof(keyOrValue) == 'boolean') {
@@ -243,7 +243,7 @@ class Parser {
 			const char = this.currentChar();
 
 			// we need to bail out if we see a comma
-			if (isWhiteSpace(char) || char === ',') {
+			if (isWhiteSpace(char) || char === ',' || char === '=') {
 				return this.input.slice(start, this.pos);
 			}
 		}
@@ -356,7 +356,7 @@ class Parser {
 	}
 
 	finalizeTable(arrEntries: unknown[], entries: Map<string | number, unknown>): unknown[] | Record<string, unknown> {
-		arrEntries.forEach((v, i) => entries.set(i + 1, v));
+		arrEntries.forEach((v, i) => entries.set(i, v));
 		const keys = [...entries.keys()];
 		const { hasStringKey, hasNumKeys, hasNonArrayNumKeys } = analyzeKeys(keys);
 
