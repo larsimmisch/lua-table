@@ -139,9 +139,9 @@ class Parser {
 
 	tryValue() {
 		let value: unknown;
-		value = this.tryString();
+		value = this.tryNumber();
 		if (value === undefined) {
-			value = this.tryNumber();
+			value = this.tryTable();
 		}
 		if (value === undefined) {
 			value = this.tryBoolean();
@@ -150,7 +150,7 @@ class Parser {
 			value = this.tryNil();
 		}
 		if (value === undefined) {
-			value = this.tryTable();
+			value = this.tryString();
 		}
 		return value;
 	}
@@ -169,41 +169,61 @@ class Parser {
 				this.pos++;
 				return this.finalizeTable(arrEntries, entries);
 			}
-			let key = this.tryValue();
-			if (key === undefined) {
-				key = this.tryLiteral();
 
-				if (key === undefined) {
-					throw new Error(this.invalidMessage());
+			let keyOrValue = this.tryValue();
+			if (keyOrValue === undefined) {
+				keyOrValue = this.tryLiteral();
+				if (keyOrValue === undefined) {
+					if (this.currentChar() === '[') {
+						this.pos++;
+						this.skipWhiteSpace();
+
+						keyOrValue = this.tryNumber();
+						if (keyOrValue === undefined) {
+							keyOrValue = this.tryString();
+						}
+						if (keyOrValue === undefined) {
+							throw new Error(this.invalidMessage());
+						}
+						this.skipWhiteSpace();
+						if (this.currentChar() !== ']') {
+							return new Error(this.invalidMessage());
+						}
+						this.pos++;
+					}
 				}
 			}
 			this.skipWhiteSpace();
-			if (this.currentChar() === ",") {
+			let isClosingBrace = this.currentChar() === '}'
+			if (this.currentChar() === "," || isClosingBrace) {
 				this.pos++;
 				this.skipWhiteSpace();
-				arrEntries.push(key);
+				arrEntries.push(keyOrValue);
+				if (isClosingBrace) {
+					return this.finalizeTable(arrEntries, entries);
+				}
 			}
 			else if (this.currentChar() === "=") {
 				this.pos++;
 				this.skipWhiteSpace();
 				const value = this.tryValue();
-				if (key === undefined) {
-					arrEntries.push(value);
+				if (typeof(keyOrValue) == 'number') {
+					if (!Number.isInteger(keyOrValue) || (keyOrValue < 0)) {
+						throw new Error(errMsg.nonPosIntKeys())
+					}
+					arrEntries.
+					arrEntries[keyOrValue] = value;
+				}
+				else if (typeof(keyOrValue) == 'boolean') {
+					arrEntries[keyOrValue ? 1 : 0] = value;
+				}
+				else if (typeof(keyOrValue) == 'string') {
+					entries.set(keyOrValue, value);
 				}
 				else {
-					if (typeof(key) == 'number') {
-						arrEntries[key] = value;
-					}
-					else if (typeof(key) == 'boolean') {
-						arrEntries[key ? 1 : 0] = value;
-					}
-					else if (typeof(key) == 'string') {
-						entries.set(key, value);
-					}
-					else {
-						throw new Error(this.invalidMessage());
-					}
+					throw new Error(this.invalidMessage());
 				}
+
 				this.skipWhiteSpace();
 				if (this.currentChar() === ",") {
 					this.pos++;
@@ -214,37 +234,10 @@ class Parser {
 		throw new Error(errMsg.end());
 	}
 
-	tryKey(): string | number | undefined {
-		let key: string | number | undefined;
-		if (this.currentChar() !== "[") {
-			key = this.tryLiteral();
-		}
-		else {
-			this.skipWhiteSpace();
-			key = this.tryString();
-			if (key == undefined) {
-				key = this.tryNumber();
-			}
-			if (key == undefined && this.options.booleanKeys) {
-				key = this.tryBoolean()?.toString();
-			}
-			if (key == undefined) {
-				throw new Error(this.invalidMessage());
-			}
-			this.skipWhiteSpace();
-			if (this.currentChar() !== "]") {
-				throw new Error(this.invalidMessage());
-			}
-		}
-
-		if (key === undefined) {
-			throw new Error(this.invalidMessage());
-		}
-
-		return key;
-	}
-
 	tryLiteral(): string | undefined {
+		if (this.currentChar() === '[') {
+			return undefined;
+		}
 		const start = this.pos;
 		while (++this.pos < this.input.length) {
 			const char = this.currentChar();
