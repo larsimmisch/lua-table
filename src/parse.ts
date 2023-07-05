@@ -139,9 +139,9 @@ class Parser {
 
 	tryValue() {
 		let value: unknown;
-		value = this.tryString();
+		value = this.tryNumber();
 		if (value === undefined) {
-			value = this.tryNumber();
+			value = this.tryTable();
 		}
 		if (value === undefined) {
 			value = this.tryBoolean();
@@ -150,7 +150,7 @@ class Parser {
 			value = this.tryNil();
 		}
 		if (value === undefined) {
-			value = this.tryTable();
+			value = this.tryString();
 		}
 		return value;
 	}
@@ -160,6 +160,7 @@ class Parser {
 			return undefined;
 		}
 		this.pos++;
+		let implicitIndex = 1;
 
 		const arrEntries: unknown[] = [];
 		const entries = new Map<string | number, unknown>();
@@ -169,88 +170,93 @@ class Parser {
 				this.pos++;
 				return this.finalizeTable(arrEntries, entries);
 			}
-			let key = this.tryValue();
-			if (key === undefined) {
-				key = this.tryLiteral();
 
-				if (key === undefined) {
-					throw new Error(this.invalidMessage());
+			let keyOrValue = this.tryValue();
+			if (keyOrValue === undefined) {
+				keyOrValue = this.tryLiteral();
+				if (keyOrValue === undefined) {
+					if (this.currentChar() === '[') {
+						this.pos++;
+						this.skipWhiteSpace();
+
+						keyOrValue = this.tryNumber();
+						if (keyOrValue === undefined) {
+							keyOrValue = this.tryString();
+						}
+						if (keyOrValue === undefined && this.options.booleanKeys) {
+							keyOrValue = this.tryBoolean();
+						}
+						if (keyOrValue === undefined) {
+							throw new Error(this.invalidMessage());
+						}
+						this.skipWhiteSpace();
+						if (this.currentChar() !== ']') {
+							return new Error(this.invalidMessage());
+						}
+						this.pos++;
+					}
 				}
 			}
 			this.skipWhiteSpace();
-			if (this.currentChar() === ",") {
+			let char = this.currentChar();
+			if (char === "," || char === '}') {
 				this.pos++;
 				this.skipWhiteSpace();
-				arrEntries.push(key);
+				arrEntries[implicitIndex++] = keyOrValue;
+				if (char === '}') {
+					return this.finalizeTable(arrEntries, entries);
+				}
 			}
-			else if (this.currentChar() === "=") {
+			else if (char === "=") {
 				this.pos++;
 				this.skipWhiteSpace();
 				const value = this.tryValue();
-				if (key === undefined) {
-					arrEntries.push(value);
-				}
-				else {
-					if (typeof(key) == 'number') {
-						arrEntries[key] = value;
-					}
-					else if (typeof(key) == 'boolean') {
-						arrEntries[key ? 1 : 0] = value;
-					}
-					else if (typeof(key) == 'string') {
-						entries.set(key, value);
+				if (typeof(keyOrValue) == 'number') {
+					if (!Number.isInteger(keyOrValue) || (keyOrValue <= 0)) {
+						if (this.options.nonPositiveIntegerKeys) {
+							entries.set(keyOrValue.toString(), value);
+						}
+						else {
+							throw new Error(errMsg.nonPosIntKeys());
+						}
 					}
 					else {
-						throw new Error(this.invalidMessage());
+						arrEntries[keyOrValue] = value;
 					}
 				}
+				else if (typeof(keyOrValue) == 'boolean') {
+					entries.set(keyOrValue ? 'true' : 'false', value);
+				}
+				else if (typeof(keyOrValue) == 'string') {
+					entries.set(keyOrValue, value);
+				}
+				else {
+					throw new Error(this.invalidMessage());
+				}
+
 				this.skipWhiteSpace();
 				if (this.currentChar() === ",") {
 					this.pos++;
 					this.skipWhiteSpace();
 				}
 			}
+			else {
+				throw new Error(this.invalidMessage());
+			}
 		}
 		throw new Error(errMsg.end());
 	}
 
-	tryKey(): string | number | undefined {
-		let key: string | number | undefined;
-		if (this.currentChar() !== "[") {
-			key = this.tryLiteral();
-		}
-		else {
-			this.skipWhiteSpace();
-			key = this.tryString();
-			if (key == undefined) {
-				key = this.tryNumber();
-			}
-			if (key == undefined && this.options.booleanKeys) {
-				key = this.tryBoolean()?.toString();
-			}
-			if (key == undefined) {
-				throw new Error(this.invalidMessage());
-			}
-			this.skipWhiteSpace();
-			if (this.currentChar() !== "]") {
-				throw new Error(this.invalidMessage());
-			}
-		}
-
-		if (key === undefined) {
-			throw new Error(this.invalidMessage());
-		}
-
-		return key;
-	}
-
 	tryLiteral(): string | undefined {
+		if (this.currentChar() === '[') {
+			return undefined;
+		}
 		const start = this.pos;
 		while (++this.pos < this.input.length) {
 			const char = this.currentChar();
 
 			// we need to bail out if we see a comma
-			if (isWhiteSpace(char) || char === ',') {
+			if (isWhiteSpace(char) || char === ',' || char === '=') {
 				return this.input.slice(start, this.pos);
 			}
 		}
@@ -363,7 +369,7 @@ class Parser {
 	}
 
 	finalizeTable(arrEntries: unknown[], entries: Map<string | number, unknown>): unknown[] | Record<string, unknown> {
-		arrEntries.forEach((v, i) => entries.set(i + 1, v));
+		arrEntries.forEach((v, i) => entries.set(i, v));
 		const keys = [...entries.keys()];
 		const { hasStringKey, hasNumKeys, hasNonArrayNumKeys } = analyzeKeys(keys);
 
