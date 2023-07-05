@@ -183,6 +183,9 @@ class Parser {
 						if (keyOrValue === undefined) {
 							keyOrValue = this.tryString();
 						}
+						if (keyOrValue === undefined && this.options.booleanKeys) {
+							keyOrValue = this.tryBoolean();
+						}
 						if (keyOrValue === undefined) {
 							throw new Error(this.invalidMessage());
 						}
@@ -204,18 +207,25 @@ class Parser {
 					return this.finalizeTable(arrEntries, entries);
 				}
 			}
-			else if (this.currentChar() === "=") {
+			else if (char === "=") {
 				this.pos++;
 				this.skipWhiteSpace();
 				const value = this.tryValue();
 				if (typeof(keyOrValue) == 'number') {
-					if (!Number.isInteger(keyOrValue) || (keyOrValue < 0)) {
-						throw new Error(errMsg.nonPosIntKeys())
+					if (!Number.isInteger(keyOrValue) || (keyOrValue <= 0)) {
+						if (this.options.nonPositiveIntegerKeys) {
+							entries.set(keyOrValue.toString(), value);
+						}
+						else {
+							throw new Error(errMsg.nonPosIntKeys());
+						}
 					}
-					arrEntries[keyOrValue] = value;
+					else {
+						arrEntries[keyOrValue] = value;
+					}
 				}
 				else if (typeof(keyOrValue) == 'boolean') {
-					arrEntries[keyOrValue ? 1 : 0] = value;
+					entries.set(keyOrValue ? 'true' : 'false', value);
 				}
 				else if (typeof(keyOrValue) == 'string') {
 					entries.set(keyOrValue, value);
@@ -229,6 +239,9 @@ class Parser {
 					this.pos++;
 					this.skipWhiteSpace();
 				}
+			}
+			else {
+				throw new Error(this.invalidMessage());
 			}
 		}
 		throw new Error(errMsg.end());
